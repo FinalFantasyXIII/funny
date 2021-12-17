@@ -88,8 +88,13 @@ func main() {
 	}()
 	time.Sleep(time.Second)
 
-	for !t.q.Empty() {
+	for ; ;{
 		t.mutex.Lock()
+		if t.q.Empty() {
+			t.mutex.Unlock()
+			fmt.Println("no message ...")
+			continue
+		}
 		v, _ := t.q.Pop()
 		t.mutex.Unlock()
 
@@ -99,7 +104,6 @@ func main() {
 		t.currentPlayer.Thanks()
 		fmt.Println("----------------------------")
 	}
-
 }
 
 
