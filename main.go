@@ -6,6 +6,7 @@ import (
 	"github.com/emirpasic/gods/trees/binaryheap"
 	_ "github.com/go-sql-driver/mysql"
 	"math/rand"
+	"sync"
 	"time"
 )
 
@@ -17,6 +18,8 @@ type Theater  struct {
 	q	*binaryheap.Heap
 	//当前表演者
 	currentPlayer staff.Player
+	//来把锁
+	mutex sync.Mutex
 }
 
 func NewTheater() *Theater{
@@ -78,13 +81,18 @@ func main() {
 	//派出工作线程接受表演节目单
 	go func() {
 		for v := range t.c{
+			t.mutex.Lock()
 			t.q.Push(v)
+			t.mutex.Unlock()
 		}
 	}()
 	time.Sleep(time.Second)
 
 	for !t.q.Empty() {
+		t.mutex.Lock()
 		v, _ := t.q.Pop()
+		t.mutex.Unlock()
+
 		t.currentPlayer = v.(staff.Player)
 		t.currentPlayer.Introduce()
 		t.currentPlayer.Play()
