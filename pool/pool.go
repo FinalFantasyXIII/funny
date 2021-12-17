@@ -24,8 +24,6 @@ func New(maxWorkers int) *WorkerPool {
 	}
 	// Start the task dispatcher.
 	pool.dispatch()
-	pool.dispatchClose()
-
 	return pool
 }
 
@@ -41,25 +39,6 @@ func (p *WorkerPool) dispatch() {
 		p.taskQueue[i] = make(chan func(), 1024)
 		go startWorker(p.taskQueue[i])
 	}
-}
-
-func (p *WorkerPool) dispatchClose(){
-	go func() {
-		for {
-			<- p.stoppedChan
-			for _,v := range p.taskQueue{
-				close(v)
-			}
-			p.maxWorkers = 0
-			p.stoppedChan <- struct{}{}
-		}
-	}()
-}
-
-func (p *WorkerPool) Close(){
-	p.stoppedChan <- struct{}{}
-	<- p.stoppedChan
-	close(p.stoppedChan)
 }
 
 func startWorker(taskChan chan func()) {
