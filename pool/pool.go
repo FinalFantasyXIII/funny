@@ -1,7 +1,7 @@
 package pool
 
 import (
-	"github.com/segmentio/fasthash/fnv1a"
+	"hash/crc32"
 )
 
 type WorkerPool struct {
@@ -28,7 +28,7 @@ func New(maxWorkers int) *WorkerPool {
 }
 
 func (p *WorkerPool) Submit(uid string, task func()) {
-	idx := fnv1a.HashString64(uid) % uint64(p.maxWorkers)
+	idx := crc32.ChecksumIEEE([]byte(uid)) & uint32(p.maxWorkers)
 	if task != nil {
 		p.taskQueue[idx] <- task
 	}
